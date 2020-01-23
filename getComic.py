@@ -6,24 +6,23 @@ class bnComic:
 		self.comicDict={}
 		self.url='https://m.bnmanhua.com'
 		self.kw=input('请输入要下载的漫画:')
-		os.mkdir(self.kw)
 		self.comicUrl=self.searchComic(self.kw)
 		self.pageList=self.returnPage(self.comicUrl)
 	def searchComic(self,kw):
 		r=requests.post(self.url+'/index.php?m=vod-search',{'wd':self.kw})
 		comic=re.search('<a class=\"vbox_t\" href=\"(.*)\" title=\"(.*)\">',r.text)
 		r.close()
+		self.filename=comic.group(2)
 		if not comic:
-			print('没有漫画,请检查漫画名称')
-			return
+			raise Exception('没有'+self.kw+'漫画,请检查漫画名称')
 		return self.url+comic.group(1)
 	def returnPage(self,u):
 		r=requests.get(u)
 		soup=BeautifulSoup(r.text,'html.parser')
 		r.close()
 		if soup.body.font:
-			print('此漫画受版权限制,禁止下载')
-			return
+			raise Exception(self.kw+'漫画受版权限制,禁止下载')
+		os.mkdir(self.filename)
 		return [self.url+x.attrs['href'] for x in soup.ul.find_all('a')]
 	def picDict(self,u):
 		r=requests.get(u,headers=header)
@@ -51,16 +50,19 @@ class bnComic:
 			f.close()
 		return
 	def run(self):
-		for page in self.pageList:
-			t=threading.Thread(target=self.picDict,args=(page,))
-			t.daemon=1
-			t.start()
-		time.sleep(10)
-		print('正在下载')
-		for part in self.comicDict.items():
-			t=threading.Thread(target=self.saveComic,args=(part,))
-			t.daemon=1
-			t.start()
-		print('下载完成')
+		try:
+			for page in self.pageList:
+				t=threading.Thread(target=self.picDict,args=(page,))
+				t.daemon=1
+				t.start()
+			time.sleep(10)
+			print('正在下载')
+			for part in self.comicDict.items():
+				t=threading.Thread(target=self.saveComic,args=(part,))
+				t.daemon=1
+				t.start()
+			print('下载完成')
+		except Exception as e:
+			print(e)
 manhua=bnComic()
 manhua.run()
