@@ -118,7 +118,6 @@ class bnComic(tkinter.Tk):
 	def runthread(func, args):
 		global ff,path
 		try:
-			print(type(args))
 			if type(args)==type({}):
 				path=filedialog.askdirectory()
 				ff=len(args)
@@ -129,7 +128,6 @@ class bnComic(tkinter.Tk):
 				self.l3['text']=''
 				self.progress['value']=0.0
 			elif type(args)==type([]):
-				print(111)
 				ff=len(args)
 				for arg in args:
 					t=threading.Thread(target=func,args=(arg,))
@@ -138,7 +136,6 @@ class bnComic(tkinter.Tk):
 				self.l3['text']=''
 				self.progress['value']=0.0
 			else:
-				print(111)
 				t=threading.Thread(target=func,args=(args,))
 				t.setDaemon(1)
 				t.start()
